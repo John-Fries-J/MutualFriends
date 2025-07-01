@@ -1,7 +1,7 @@
 /**
  * @name MutualFriends
  * @author johnfries
- * @version 1.6.0
+ * @version 1.6.1
  * @description Adds a context menu item to show all friends in the current server when right-clicking the server icon
  * @website https://johnfries.net
  * @source https://github.com/John-Fries-J/MutualFriends
@@ -25,14 +25,14 @@ var __copyProps = (to, from, except, desc) => {
 };
 var __toCommonJS = (mod) => __copyProps(__defProp({}, "__esModule", { value: true }), mod);
 
-var ServerFriends_exports = {};
-__export(ServerFriends_exports, {
-  default: () => ServerFriends
+var MutualFriends_exports = {};
+__export(MutualFriends_exports, {
+  default: () => MutualFriends
 });
-module.exports = __toCommonJS(ServerFriends_exports);
+module.exports = __toCommonJS(MutualFriends_exports);
 
 var styles_default = `
-    .server-friends-modal {
+    .mutual-friends-modal {
         background-color: var(--background-primary);
         padding: 20px;
         border-radius: 8px;
@@ -40,48 +40,48 @@ var styles_default = `
         max-height: 500px;
         overflow-y: auto;
     }
-    .server-friends-title {
-        color: var(--header-primary);
+    .mutual-friends-title {
+        color: #ffffff;
         font-size: 18px;
         font-weight: 600;
         margin-bottom: 15px;
     }
-    .server-friends-list {
+    .mutual-friends-list {
         list-style: none;
         padding: 0;
     }
-    .server-friends-item {
+    .mutual-friends-item {
         padding: 8px;
         margin: 4px 0;
         background-color: var(--background-secondary);
         border-radius: 4px;
-        color: var(--text-normal);
+        color: #ffffff;
     }
-    .server-friends-modal::-webkit-scrollbar {
+    .mutual-friends-modal::-webkit-scrollbar {
         width: 8px;
     }
-    .server-friends-modal::-webkit-scrollbar-thumb {
+    .mutual-friends-modal::-webkit-scrollbar-thumb {
         background-color: rgba(32,34,37,.6);
         border-radius: 4px;
         border: 2px solid transparent;
     }
-    .server-friends-modal::-webkit-scrollbar-track {
+    .mutual-friends-modal::-webkit-scrollbar-track {
         background-color: transparent;
         border: 2px solid transparent;
     }
-    .theme-light .server-friends-modal {
+    .theme-light .mutual-friends-modal {
         background-color: #fff;
     }
-    .theme-light .server-friends-title {
-        color: #060607;
+    .theme-light .mutual-friends-title {
+        color: #ffffff;
     }
-    .theme-light .server-friends-item {
-        color: #000;
-        background-color: rgba(0,0,0,.1);
+    .theme-light .mutual-friends-item {
+        color: #ffffff;
+        background-color: rgba(255, 255, 255, 0.1);
     }
 `;
 
-class ServerFriends {
+class MutualFriends {
     constructor() {
         this.friends = [];
         this.serverMembers = [];
@@ -89,14 +89,14 @@ class ServerFriends {
     }
 
     start() {
-        BdApi.Logger.info('ServerFriends', 'Starting plugin version 1.6.0');
-        BdApi.DOM.addStyle('ServerFriends', styles_default);
+        BdApi.Logger.info('MutualFriends', 'Starting plugin version 1.6.0');
+        BdApi.DOM.addStyle('MutualFriends', styles_default);
         this.patchContextMenu();
     }
 
     stop() {
-        BdApi.Logger.info('ServerFriends', 'Stopping plugin');
-        BdApi.DOM.removeStyle('ServerFriends');
+        BdApi.Logger.info('MutualFriends', 'Stopping plugin');
+        BdApi.DOM.removeStyle('MutualFriends');
         for (const cancel of this.contextMenuPatches) cancel();
     }
 
@@ -107,7 +107,7 @@ class ServerFriends {
 
             const guildId = props.guild.id;
             const newItem = ContextMenu.buildItem({
-                label: 'Show Server Friends',
+                label: 'Show Mutual Friends',
                 action: () => this.showFriendsModal(guildId)
             });
 
@@ -129,29 +129,29 @@ class ServerFriends {
 
             await this.fetchFriendsAndMembers(guildId);
 
-            const serverFriends = this.friends.filter(friend => 
+            const mutualFriends = this.friends.filter(friend => 
                 this.serverMembers.some(member => member.userId === friend.id)
             );
 
             const modalContent = `
-                <div class="server-friends-modal">
-                    <div class="server-friends-title">Friends in this Server (${serverFriends.length})</div>
-                    <ul class="server-friends-list">
-                        ${serverFriends.length > 0 
-                            ? serverFriends.map(friend => `<li class="server-friends-item">${friend.username}</li>`).join('')
-                            : '<li class="server-friends-item">No friends found in this server.</li>'
+                <div class="mutual-friends-modal">
+                    <div class="mutual-friends-title">Friends in this Server (${mutualFriends.length})</div>
+                    <ul class="mutual-friends-list">
+                        ${mutualFriends.length > 0 
+                            ? mutualFriends.map(friend => `<li class="mutual-friends-item">${friend.username}</li>`).join('')
+                            : '<li class="mutual-friends-item">No friends found in this server.</li>'
                         }
                     </ul>
                 </div>
             `;
 
             BdApi.UI.showConfirmationModal(
-                'Server Friends',
+                'Mutual Friends',
                 BdApi.React.createElement('div', { dangerouslySetInnerHTML: { __html: modalContent } }),
-                { confirmText: 'Close' }
+                { confirmText: 'Complete' }
             );
         } catch (error) {
-            console.error('[ServerFriends] Error in showFriendsModal:', error);
+            console.error('[MutualFriends] Error in showFriendsModal:', error);
             BdApi.UI.showToast('Failed to load friends list. Check console for details.', { type: 'error' });
         }
     }
@@ -160,7 +160,7 @@ class ServerFriends {
         try {
             const RelationshipModule = BdApi.Webpack.getByKeys('getRelationships', 'getFriendIDs') ||
                                       BdApi.Webpack.getModule(m => m.getFriendIDs || m.getRelationship, { searchExports: true });
-            console.log('[ServerFriends] RelationshipModule found:', !!RelationshipModule);
+            console.log('[MutualFriends] RelationshipModule found:', !!RelationshipModule);
             if (!RelationshipModule || (!RelationshipModule.getRelationships && !RelationshipModule.getFriendIDs)) {
                 throw new Error('Could not find relationship module or required functions');
             }
@@ -175,22 +175,22 @@ class ServerFriends {
                     if (user) relationships[id] = { id, type: 1, username: user.username };
                 });
             }
-            console.log('[ServerFriends] Relationships count:', Object.keys(relationships).length);
+            console.log('[MutualFriends] Relationships count:', Object.keys(relationships).length);
             this.friends = Object.values(relationships)
                 .filter(rel => rel.type === 1)
                 .map(rel => ({ id: rel.id, username: rel.username || 'Unknown User' }));
 
             const GuildMemberModule = BdApi.Webpack.getByKeys('getMemberIds', 'getMembers') ||
                                      BdApi.Webpack.getModule(m => m.getMemberIds || m.getMembers, { searchExports: true });
-            console.log('[ServerFriends] GuildMemberModule found:', !!GuildMemberModule);
+            console.log('[MutualFriends] GuildMemberModule found:', !!GuildMemberModule);
             if (!GuildMemberModule || !GuildMemberModule.getMemberIds) {
                 throw new Error('Could not find guild member module or getMemberIds function');
             }
             const memberIds = GuildMemberModule.getMemberIds(guildId);
-            console.log('[ServerFriends] Member IDs count:', memberIds.length);
+            console.log('[MutualFriends] Member IDs count:', memberIds.length);
             this.serverMembers = memberIds.map(id => ({ userId: id }));
         } catch (error) {
-            console.error('[ServerFriends] Error in fetchFriendsAndMembers:', error);
+            console.error('[MutualFriends] Error in fetchFriendsAndMembers:', error);
             throw error;
         }
     }
